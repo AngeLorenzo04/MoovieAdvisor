@@ -55,7 +55,8 @@ async def render_movie_card(query, context: ContextTypes.DEFAULT_TYPE, db, user,
                 parse_mode="Markdown"
             )
     except BadRequest as e:
-        if "Failed to get http url content" in str(e) or "Message is not modified" in str(e):
+        err_msg = str(e)
+        if "Failed to get http url content" in err_msg or "Message is not modified" in err_msg or "There is no photo" in err_msg or "Wrong file identifier" in err_msg:
             # Fallback a un messaggio di testo puro se l'immagine non è raggiungibile o non cambia
             if query.message.photo:
                 await query.delete_message()
