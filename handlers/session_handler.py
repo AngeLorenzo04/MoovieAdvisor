@@ -72,7 +72,10 @@ async def render_movie_card(query, context: ContextTypes.DEFAULT_TYPE, db, user,
 
 async def handle_time_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    try:
+        await query.answer()
+    except BadRequest:
+        pass
     
     time_limit_str = query.data.split("_")[1]
     max_time = int(time_limit_str)
@@ -95,7 +98,10 @@ async def handle_time_selection(update: Update, context: ContextTypes.DEFAULT_TY
 
 async def handle_deck_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    try:
+        await query.answer()
+    except BadRequest:
+        pass
     
     action, movie_id_str = query.data.split("_")
     movie_id = int(movie_id_str)
@@ -143,7 +149,10 @@ async def handle_deck_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 async def handle_feedback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    try:
+        await query.answer()
+    except BadRequest:
+        pass
     
     # data is rate_{interaction_id}_{RATING}
     parts = query.data.split("_")

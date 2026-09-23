@@ -1,5 +1,6 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, CommandHandler, CallbackQueryHandler
+from telegram.error import BadRequest
 
 from database import SessionLocal
 from services.movie_service import get_or_create_user
@@ -59,7 +60,10 @@ async def naviga(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def handle_mood_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    try:
+        await query.answer()
+    except BadRequest:
+        pass
     
     mood_str = query.data.split("_")[1]
     context.user_data['selected_mood'] = mood_str
@@ -79,7 +83,10 @@ async def handle_mood_selection(update: Update, context: ContextTypes.DEFAULT_TY
 
 async def handle_set_tier(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    try:
+        await query.answer()
+    except BadRequest:
+        pass
     
     tier = int(query.data.split("_")[2])
     
@@ -103,7 +110,10 @@ async def handle_set_tier(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def handle_lower_tier_pref(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    try:
+        await query.answer()
+    except BadRequest:
+        pass
     
     pref = query.data.split("_")[1]
     include_lower = (pref == "1")
