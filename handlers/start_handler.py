@@ -21,9 +21,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "4. Usa /skills per vedere il tuo livello di Cinefilia e sbloccare film più rari!\n\n"
         "Inizia digitando o cliccando su /naviga !"
     )
+    keyboard = [
+        [InlineKeyboardButton("🍿 Principiante (Tier 1)", callback_data="set_tier_1")],
+        [InlineKeyboardButton("🎬 Appassionato (Tier 2)", callback_data="set_tier_2")],
+        [InlineKeyboardButton("🧐 Cinefilo Esperto (Tier 3)", callback_data="set_tier_3")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
     
     await update.message.reply_text(
-        text=welcome_msg,
+        text=welcome_msg + "\n\n👇 **Seleziona il tuo livello di partenza:**",
+        reply_markup=reply_markup,
         parse_mode="Markdown"
     )
 
@@ -62,9 +69,24 @@ async def handle_mood_selection(update: Update, context: ContextTypes.DEFAULT_TY
         parse_mode="Markdown"
     )
 
+async def handle_set_tier(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    
+    tier = int(query.data.split("_")[2])
+    
+    db = SessionLocal()
+    user = get_or_create_user(db, update.effective_user.id)
+    user.current_tier = tier
+    db.commit()
+    db.close()
+    
+    await query.edit_message_text(f"Ottimo! Ho impostato il tuo livello cinefilo al **Tier {tier}**. Sei pronto a esplorare il pascolo! MOO 🐄\n\nUsa /naviga per iniziare.", parse_mode="Markdown")
+
 def get_start_handlers():
     return [
         CommandHandler("start", start),
         CommandHandler("naviga", naviga),
-        CallbackQueryHandler(handle_mood_selection, pattern="^mood_")
+        CallbackQueryHandler(handle_mood_selection, pattern="^mood_"),
+        CallbackQueryHandler(handle_set_tier, pattern="^set_tier_")
     ]
