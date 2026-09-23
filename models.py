@@ -28,6 +28,7 @@ class User(Base):
     telegram_id = Column(Integer, unique=True, index=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     current_tier = Column(Integer, default=1)
+    include_lower_tiers = Column(Boolean, default=True)
     
     interactions = relationship("UserInteraction", back_populates="user")
 

@@ -81,12 +81,38 @@ async def handle_set_tier(update: Update, context: ContextTypes.DEFAULT_TYPE):
     db.commit()
     db.close()
     
-    await query.edit_message_text(f"Ottimo! Ho impostato il tuo livello cinefilo al **Tier {tier}**. Sei pronto a esplorare il pascolo! MOO 🐄\n\nUsa /naviga per iniziare.", parse_mode="Markdown")
+    keyboard = [
+        [InlineKeyboardButton("✅ Sì, includi film più accessibili", callback_data="lowertier_1")],
+        [InlineKeyboardButton("❌ No, mostrami SOLO film del mio Tier", callback_data="lowertier_0")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await query.edit_message_text(
+        text=f"Ottimo! Ho impostato il tuo livello cinefilo al **Tier {tier}**.\n\nVuoi che ti proponga anche film di Tier inferiori al tuo (se presenti), oppure vuoi vedere **SOLO** film del tuo livello attuale?",
+        reply_markup=reply_markup,
+        parse_mode="Markdown"
+    )
+
+async def handle_lower_tier_pref(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    
+    pref = query.data.split("_")[1]
+    include_lower = (pref == "1")
+    
+    db = SessionLocal()
+    user = get_or_create_user(db, update.effective_user.id)
+    user.include_lower_tiers = include_lower
+    db.commit()
+    db.close()
+    
+    await query.edit_message_text("Tutto pronto! Le tue preferenze sono state salvate. Sei pronto a esplorare il pascolo! MOO 🐄\n\nUsa /naviga per iniziare.", parse_mode="Markdown")
 
 def get_start_handlers():
     return [
         CommandHandler("start", start),
         CommandHandler("naviga", naviga),
         CallbackQueryHandler(handle_mood_selection, pattern="^mood_"),
-        CallbackQueryHandler(handle_set_tier, pattern="^set_tier_")
+        CallbackQueryHandler(handle_set_tier, pattern="^set_tier_"),
+        CallbackQueryHandler(handle_lower_tier_pref, pattern="^lowertier_")
     ]

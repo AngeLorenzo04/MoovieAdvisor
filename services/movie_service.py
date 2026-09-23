@@ -19,9 +19,11 @@ def get_next_movie(db: Session, user: User, mood: MoodType, max_runtime: int = N
     
     excluded_ids = [interaction[0] for interaction in excluded_interactions]
 
+    tier_filter = Movie.tier <= user.current_tier if user.include_lower_tiers else Movie.tier == user.current_tier
+
     query = db.query(Movie).filter(
         Movie.mood_tag == mood,
-        Movie.tier <= user.current_tier,
+        tier_filter,
         not_(Movie.id.in_(excluded_ids)) if excluded_ids else True
     )
 
