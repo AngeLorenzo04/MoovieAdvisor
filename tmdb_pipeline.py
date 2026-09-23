@@ -5,6 +5,10 @@ import argparse
 import requests
 from google import genai
 from dotenv import load_dotenv
+from tqdm import tqdm
+
+# Override print to work nicely with tqdm
+print = tqdm.write
 
 from database import SessionLocal
 from models import Movie, MoodType
@@ -59,7 +63,7 @@ Restituisci ESATTAMENTE e SOLO un oggetto JSON con questi campi:
 """
     try:
         response = client.models.generate_content(
-            model='gemini-3.6-flash',
+            model='gemini-flash-latest',
             contents=prompt
         )
         text = response.text.strip()
@@ -89,6 +93,8 @@ def run_pipeline(limit=10):
     page = 1
     
     print(f"🐮 Avvio pipeline TMDb + Gemini... Obiettivo: {limit} film.")
+    
+    pbar = tqdm(total=limit, desc="Popolamento Film", unit="film")
     
     while added_count < limit:
         print(f"\n--- Recupero pagina {page} da TMDb ---")
@@ -157,7 +163,8 @@ def run_pipeline(limit=10):
                 db.add(new_movie)
                 db.commit()
                 added_count += 1
-                print(f"✅ [{added_count}/{limit}] Aggiunto: {title} (Tier {new_movie.tier}, {new_movie.mood_tag.name})")
+                pbar.update(1)
+                print(f"✅ Aggiunto: {title} (Tier {new_movie.tier}, {new_movie.mood_tag.name})")
             except Exception as e:
                 db.rollback()
                 print(f"Errore DB per {title}: {e}")
@@ -167,6 +174,7 @@ def run_pipeline(limit=10):
         page += 1
         
     db.close()
+    pbar.close()
     print("\n🐄 Pipeline completata! MOO!")
 
 if __name__ == "__main__":
