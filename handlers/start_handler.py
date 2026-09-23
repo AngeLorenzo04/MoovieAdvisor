@@ -88,11 +88,17 @@ async def handle_set_tier(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except BadRequest:
         pass
     
+    import datetime
     tier = int(query.data.split("_")[2])
     
     db = SessionLocal()
     user = get_or_create_user(db, update.effective_user.id)
-    user.current_tier = tier
+    
+    # Only reset timestamp if the tier actually changed
+    if user.current_tier != tier:
+        user.current_tier = tier
+        user.tier_updated_at = datetime.datetime.utcnow()
+        
     db.commit()
     db.close()
     

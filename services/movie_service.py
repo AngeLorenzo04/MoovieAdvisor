@@ -47,16 +47,23 @@ def log_interaction(db: Session, user_id: int, movie_id: int, status: Interactio
 
 def get_user_stats(db: Session, user: User):
     # Calculate stats for the /skills command
-    seen_movies = db.query(UserInteraction).filter(
+    
+    # Total movies seen in absolute terms (for the counter)
+    total_seen_query = db.query(UserInteraction).filter(
         UserInteraction.user_id == user.id,
         UserInteraction.status.in_([InteractionStatus.SEEN, InteractionStatus.CHOSEN])
-    ).all()
+    )
+    total_seen = total_seen_query.count()
     
-    total_seen = len(seen_movies)
+    # Current tier streak (movies seen since the tier was last updated)
+    tier_streak_query = total_seen_query.filter(
+        UserInteraction.interaction_timestamp >= user.tier_updated_at
+    )
+    streak_seen = tier_streak_query.count()
     
     # Calculate tier progress (simplified logic: e.g., need 5 movies to unlock tier 2)
-    movies_needed_for_tier_2 = 5
-    tier_progress = min(100, int((total_seen / movies_needed_for_tier_2) * 100))
+    movies_needed_for_next_tier = 5
+    tier_progress = min(100, int((streak_seen / movies_needed_for_next_tier) * 100))
     
     return {
         "current_tier": user.current_tier,
