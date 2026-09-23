@@ -59,7 +59,7 @@ Restituisci ESATTAMENTE e SOLO un oggetto JSON con questi campi:
 """
     try:
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-3.6-flash',
             contents=prompt
         )
         text = response.text.strip()
@@ -73,7 +73,14 @@ Restituisci ESATTAMENTE e SOLO un oggetto JSON con questi campi:
         
         return json.loads(text.strip())
     except Exception as e:
-        print(f"Errore Generazione AI per {title}: {e}")
+        error_msg = str(e)
+        print(f"Errore Generazione AI per {title}: {error_msg}")
+        if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
+            print("Quota superata! Metto in pausa per 45 secondi...")
+            time.sleep(45)
+        elif "503" in error_msg or "UNAVAILABLE" in error_msg:
+            print("Server sovraccarico! Metto in pausa per 10 secondi...")
+            time.sleep(10)
         return None
 
 def run_pipeline(limit=10):
@@ -129,7 +136,7 @@ def run_pipeline(limit=10):
             curation = generate_curation_data(title, overview, director, year)
             
             if not curation:
-                time.sleep(1.5) # Anti rate-limit per l'API fallita
+                time.sleep(3) # Anti rate-limit per l'API fallita
                 continue
                 
             try:
@@ -155,7 +162,7 @@ def run_pipeline(limit=10):
                 db.rollback()
                 print(f"Errore DB per {title}: {e}")
             
-            time.sleep(2) # Rispetta i rate limits di Gemini e TMDB
+            time.sleep(15) # Rispetta i rate limits di Gemini (15 RPM sul tier gratuito)
         
         page += 1
         
