@@ -11,7 +11,12 @@ async def render_movie_card(query, context: ContextTypes.DEFAULT_TYPE, db, user,
     movie = get_next_movie(db, user, mood, max_runtime=max_time, min_runtime=min_time)
     
     if not movie:
-        await query.edit_message_text("Nessun film trovato in questo pascolo! MOO 🐄 Prova a cambiare filtri o usa /skills per vedere i progressi della tua mandria.")
+        msg = "Nessun film trovato in questo pascolo! MOO 🐄 Prova a cambiare filtri o usa /skills per vedere i progressi della tua mandria."
+        if query.message.photo:
+            await query.message.delete()
+            await context.bot.send_message(chat_id=query.message.chat_id, text=msg)
+        else:
+            await query.edit_message_text(msg)
         return
     
     caption = (
