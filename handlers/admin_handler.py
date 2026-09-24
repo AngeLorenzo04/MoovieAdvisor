@@ -30,9 +30,33 @@ async def stop_pipeline_callback(update: Update, context: ContextTypes.DEFAULT_T
     pipeline_state["stop_requested"] = True
     await query.edit_message_text(f"{query.message.text}\n\n🛑 *Richiesta di blocco inviata. Il trattore si fermerà a breve.*", parse_mode="Markdown")
 
+async def ultimi_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    from database import SessionLocal
+    from models import Movie
+    db = SessionLocal()
+    
+    limit = 10
+    if context.args and context.args[0].isdigit():
+        limit = int(context.args[0])
+        
+    # Get latest added movies (highest IDs)
+    recent = db.query(Movie).order_by(Movie.id.desc()).limit(limit).all()
+    db.close()
+    
+    if not recent:
+        await update.message.reply_text("Nessun film presente nel pascolo!")
+        return
+        
+    msg = f"🎥 **Ultimi {len(recent)} film aggiunti:**\n\n"
+    for m in recent:
+        msg += f"• *{m.title}* ({m.year}) - Tier {m.min_tier_required} ({m.mood_tag.name})\n"
+        
+    await update.message.reply_text(msg, parse_mode="Markdown")
+
 def get_admin_handlers():
     from telegram.ext import CallbackQueryHandler
     return [
         CommandHandler("popola", popola_cmd),
+        CommandHandler("ultimi", ultimi_cmd),
         CallbackQueryHandler(stop_pipeline_callback, pattern="^stop_pipeline$")
     ]
