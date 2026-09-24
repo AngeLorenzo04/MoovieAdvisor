@@ -94,9 +94,28 @@ async def run_pipeline_async(limit, chat_id, context):
     added_count = 0
     page = 1
     
+    import time
+    
     keyboard = [[InlineKeyboardButton("🛑 Ferma il Trattore", callback_data="stop_pipeline")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await context.bot.send_message(chat_id=chat_id, text=f"🚜 Avvio del trattore per raccogliere {limit} film...", reply_markup=reply_markup)
+    status_msg = await context.bot.send_message(chat_id=chat_id, text=f"🚜 Avvio del trattore per raccogliere {limit} film...\n\n_In attesa..._", reply_markup=reply_markup, parse_mode="Markdown")
+    
+    live_log = []
+    last_ui_update = 0
+    
+    async def update_ui(force=False):
+        nonlocal last_ui_update
+        now = time.time()
+        if not force and (now - last_ui_update < 3.0):
+            return
+            
+        last_ui_update = now
+        log_text = "\n".join(live_log[-7:]) # Show last 7 lines
+        text = f"🚜 *Avanzamento Trattore: {added_count}/{limit}*\n\n{log_text}"
+        try:
+            await status_msg.edit_text(text, reply_markup=reply_markup, parse_mode="Markdown")
+        except Exception:
+            pass
     
     try:
         while added_count < limit:
@@ -115,6 +134,8 @@ async def run_pipeline_async(limit, chat_id, context):
                 title = tmdb_movie.get('title')
                 exists = db.query(Movie).filter(Movie.title == title).first()
                 if exists:
+                    live_log.append(f"⏭️ Già presente: {title}")
+                    await update_ui()
                     continue
                     
                 details = await fetch_movie_details_async(tmdb_movie['id'])
@@ -144,15 +165,16 @@ async def run_pipeline_async(limit, chat_id, context):
                 if isinstance(curation, str): # Error message
                     error_msg = curation
                     if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
-                        await context.bot.send_message(chat_id=chat_id, text=f"⚠️ Limite API raggiunto su {title}. Pausa 45s per raffreddare i motori...")
+                        live_log.append(f"⏳ Limite API su {title}. Pausa 45s...")
+                        await update_ui(force=True)
                         await asyncio.sleep(45)
                     elif "503" in error_msg or "UNAVAILABLE" in error_msg:
-                        await context.bot.send_message(chat_id=chat_id, text=f"⚠️ Server AI sovraccarico (Errore 503) su {title}. Pausa di 15 secondi... 😴")
+                        live_log.append(f"🔥 Server sovraccarico su {title}. Pausa 15s...")
+                        await update_ui(force=True)
                         await asyncio.sleep(15)
                     else:
-                        keyboard = [[InlineKeyboardButton("🛑 Ferma il Trattore", callback_data="stop_pipeline")]]
-                        reply_markup = InlineKeyboardMarkup(keyboard)
-                        await context.bot.send_message(chat_id=chat_id, text=f"⚠️ Errore Intelligenza Artificiale per *{title}*:\n{error_msg}", parse_mode="Markdown", reply_markup=reply_markup)
+                        live_log.append(f"❌ Errore AI su {title}: {error_msg[:30]}...")
+                        await update_ui(force=True)
                         await asyncio.sleep(3)
                     continue
                     
@@ -175,15 +197,13 @@ async def run_pipeline_async(limit, chat_id, context):
                     db.commit()
                     added_count += 1
                     
-                    # Notifica ogni 10 film per far sapere che è vivo
-                    if added_count % 10 == 0:
-                        keyboard = [[InlineKeyboardButton("🛑 Ferma il Trattore", callback_data="stop_pipeline")]]
-                        reply_markup = InlineKeyboardMarkup(keyboard)
-                        await context.bot.send_message(chat_id=chat_id, text=f"📊 Aggiornamento: Aggiunti {added_count}/{limit} film.", reply_markup=reply_markup)
+                    live_log.append(f"✅ *Aggiunto*: {title} (Tier {new_movie.tier})")
+                    await update_ui(force=True)
                         
                 except Exception as e:
                     db.rollback()
-                    keyboard = [[InlineKeyboardButton("🛑 Ferma il Trattore", callback_data="stop_pipeline")]]
+                    live_log.append(f"❌ *Errore salvataggio* su {title}")
+                    await update_ui(force=True)
                     reply_markup = InlineKeyboardMarkup(keyboard)
                     await context.bot.send_message(chat_id=chat_id, text=f"❌ Errore Database per *{title}*: {e}", parse_mode="Markdown", reply_markup=reply_markup)
                 
