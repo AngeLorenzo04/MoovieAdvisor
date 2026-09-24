@@ -57,7 +57,9 @@ async def seed():
     added = 0
     
     async with httpx.AsyncClient() as client:
-        for page in [1, 2]:
+        # Recupera 25 pagine (20 film per pagina = 500 film)
+        for page in range(1, 26):
+            print(f"📄 Scraping Pagina {page}/25 da TMDB...")
             url = f"{TMDB_BASE_URL}/movie/top_rated?api_key={TMDB_API_KEY}&language=it-IT&page={page}"
             r = await client.get(url)
             movies = r.json().get('results', [])
