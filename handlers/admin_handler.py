@@ -19,16 +19,20 @@ async def popola_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     asyncio.create_task(run_pipeline_async(limit, update.message.chat_id, context))
     await update.message.reply_text(f"🚜 OK! Avviato il download e l'analisi di {limit} film in background.\nTi avviserò se qualcosa va storto.")
 
-async def stop_popola_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def stop_pipeline_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    
     if not pipeline_state["is_running"]:
-        await update.message.reply_text("Il trattore è già fermo! 🚜")
+        await query.edit_message_text(f"{query.message.text}\n\n*(Il trattore è già fermo!)*", parse_mode="Markdown")
         return
         
     pipeline_state["stop_requested"] = True
-    await update.message.reply_text("🛑 Richiesta di blocco inviata. Il trattore si fermerà al termine dell'operazione corrente.")
+    await query.edit_message_text(f"{query.message.text}\n\n🛑 *Richiesta di blocco inviata. Il trattore si fermerà a breve.*", parse_mode="Markdown")
 
 def get_admin_handlers():
+    from telegram.ext import CallbackQueryHandler
     return [
         CommandHandler("popola", popola_cmd),
-        CommandHandler("stop_popola", stop_popola_cmd)
+        CallbackQueryHandler(stop_pipeline_callback, pattern="^stop_pipeline$")
     ]

@@ -3,6 +3,7 @@ import asyncio
 import json
 import httpx
 from google import genai
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from database import SessionLocal
 from models import Movie, MoodType
 
@@ -68,7 +69,9 @@ async def run_pipeline_async(limit, chat_id, context):
     added_count = 0
     page = 1
     
-    await context.bot.send_message(chat_id=chat_id, text=f"🚜 Avvio del trattore per raccogliere {limit} film...")
+    keyboard = [[InlineKeyboardButton("🛑 Ferma il Trattore", callback_data="stop_pipeline")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await context.bot.send_message(chat_id=chat_id, text=f"🚜 Avvio del trattore per raccogliere {limit} film...", reply_markup=reply_markup)
     
     try:
         while added_count < limit:
@@ -144,11 +147,15 @@ async def run_pipeline_async(limit, chat_id, context):
                     
                     # Notifica ogni 10 film per far sapere che è vivo
                     if added_count % 10 == 0:
-                        await context.bot.send_message(chat_id=chat_id, text=f"📊 Aggiornamento: Aggiunti {added_count}/{limit} film.")
+                        keyboard = [[InlineKeyboardButton("🛑 Ferma il Trattore", callback_data="stop_pipeline")]]
+                        reply_markup = InlineKeyboardMarkup(keyboard)
+                        await context.bot.send_message(chat_id=chat_id, text=f"📊 Aggiornamento: Aggiunti {added_count}/{limit} film.", reply_markup=reply_markup)
                         
                 except Exception as e:
                     db.rollback()
-                    await context.bot.send_message(chat_id=chat_id, text=f"❌ Errore Database per *{title}*: {e}", parse_mode="Markdown")
+                    keyboard = [[InlineKeyboardButton("🛑 Ferma il Trattore", callback_data="stop_pipeline")]]
+                    reply_markup = InlineKeyboardMarkup(keyboard)
+                    await context.bot.send_message(chat_id=chat_id, text=f"❌ Errore Database per *{title}*: {e}", parse_mode="Markdown", reply_markup=reply_markup)
                 
                 await asyncio.sleep(15) # Rispetta il Rate Limit
                 
@@ -158,7 +165,9 @@ async def run_pipeline_async(limit, chat_id, context):
             await context.bot.send_message(chat_id=chat_id, text=f"✅ Lavoro completato! Il trattore ha scaricato {added_count} nuovi film nel database. MOO! 🐄")
             
     except Exception as e:
-        await context.bot.send_message(chat_id=chat_id, text=f"🔥 ERRORE FATALE NELLA PIPELINE:\n{e}")
+        keyboard = [[InlineKeyboardButton("🛑 Ferma il Trattore", callback_data="stop_pipeline")]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await context.bot.send_message(chat_id=chat_id, text=f"🔥 ERRORE FATALE NELLA PIPELINE:\n{e}", reply_markup=reply_markup)
     finally:
         db.close()
         pipeline_state["is_running"] = False
