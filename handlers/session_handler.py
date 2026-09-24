@@ -3,9 +3,23 @@ from telegram.ext import ContextTypes, CallbackQueryHandler
 from telegram.error import BadRequest
 
 from database import SessionLocal
-from services.movie_service import get_or_create_user, get_next_movie, log_interaction
+from services.movie_service import get_or_create_user, get_next_movie, log_interaction, get_user_stats
 from services.job_service import schedule_post_viewing_check
 from models import InteractionStatus, FeedbackRating, UserInteraction, MoodType
+import datetime
+
+async def _check_tier_upgrade(user, db, context, chat_id):
+    stats = get_user_stats(db, user)
+    if stats['current_tier'] < 3 and stats['streak_seen'] >= stats['movies_needed_for_next_tier']:
+        user.current_tier += 1
+        user.tier_updated_at = datetime.datetime.utcnow()
+        db.commit()
+        
+        await context.bot.send_message(
+            chat_id=chat_id,
+            text=f"🎉 **LIVELLO AUMENTATO!** 🎉\n\nHai appena sbloccato il **Tier {user.current_tier}**! 🐄 Da ora in poi incontrerai film sempre più unici nei tuoi pascoli.",
+            parse_mode="Markdown"
+        )
 
 async def render_movie_card(query, context: ContextTypes.DEFAULT_TYPE, db, user, mood: MoodType, max_time: int, min_time: int = 0):
     movie = get_next_movie(db, user, mood, max_runtime=max_time, min_runtime=min_time)
@@ -124,9 +138,11 @@ async def handle_deck_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
         
     elif action == "seen":
         log_interaction(db, user.id, movie_id, InteractionStatus.SEEN)
+        await _check_tier_upgrade(user, db, context, query.message.chat_id)
         
     elif action == "choose":
         interaction = log_interaction(db, user.id, movie_id, InteractionStatus.CHOSEN)
+        await _check_tier_upgrade(user, db, context, query.message.chat_id)
         # Schedula job check-in
         movie = db.query(UserInteraction).filter(UserInteraction.id == interaction.id).first().movie
         schedule_post_viewing_check(context, update.effective_user.id, movie.title, movie.runtime, interaction.id)
