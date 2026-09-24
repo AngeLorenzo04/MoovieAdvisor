@@ -19,18 +19,18 @@ async def skills(update: Update, context: ContextTypes.DEFAULT_TYPE):
     progress_bar = "█" * filled_blocks + "░" * empty_blocks
     
     message = (
-        f"🐄 *Il tuo Profilo Bovino (Cinefilo)* 🐄\n\n"
-        f"🎬 *Film ruminati:* {stats['total_seen']}\n"
-        f"🎖 *Livello Corrente:* Tier {stats['current_tier']} ({tier_name})\n\n"
-        f"Progressione verso il prossimo Pascolo:\n"
+        f"🏆 🐄 *Il tuo Passaporto Cinefilo Bovino* 🐄 🏆\n\n"
+        f"🍿 *Film ruminati in totale:* {stats['total_seen']}\n"
+        f"🎖 *Livello Attuale:* Tier {stats['current_tier']} ({tier_name})\n\n"
+        f"📈 *Progressione verso il prossimo Pascolo:*\n"
         f"[{progress_bar}] {stats['tier_progress']}%\n"
     )
     
     if stats['current_tier'] < 3:
          missing = max(0, stats['movies_needed_for_next_tier'] - stats['streak_seen'])
-         message += f"\nBruca altri {missing} film per sbloccare il Tier {stats['current_tier'] + 1}! MOO!"
+         message += f"\n🌿 Bruca altri **{missing} film** per sbloccare i segreti del Tier {stats['current_tier'] + 1}! MOO! 🚀"
     else:
-         message += f"\nHai raggiunto il livello massimo! Il Grande Bovino è fiero di te! MUUU! 🐮"
+         message += f"\n👑 *Hai raggiunto il livello massimo!* Il Grande Bovino è onorato della tua sapienza! MUUU! 🐮✨"
 
     await update.message.reply_text(message, parse_mode="Markdown")
 

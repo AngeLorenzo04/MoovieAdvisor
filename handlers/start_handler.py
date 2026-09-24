@@ -21,14 +21,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     db.close()
     
     welcome_msg = (
-        "🐮 *MOO! Benvenuto nel Cult MOOvie Advisor!* 🐄\n\n"
-        "Sono il tuo personal trainer cinematografico bovino. Il mio scopo non è darti un motore di ricerca, ma farti scoprire le gemme più preziose e i 'cult' imperdibili della storia del cinema.\n\n"
-        "🎯 *Come funziona?*\n"
-        "1. Usa il comando /naviga per esplorare il mio pascolo.\n"
-        "2. Scegli il tuo **Mood** e il **Tempo** a disposizione.\n"
-        "3. Ti proporrò una 'carta' film alla volta. Puoi sceglierla, dire che l'hai già vista (per incrementare il tuo livello!) o passare oltre.\n"
-        "4. Usa /skills per vedere il tuo livello di Cinefilia e sbloccare film più rari!\n\n"
-        "Inizia digitando o cliccando su /naviga !"
+        "✨ 🐮 *MOO! Benvenuto nella setta di Cult MOOvie Advisor!* 🐄 ✨\n\n"
+        "Sono il tuo Personal Trainer Cinematografico Bovino! 🎬 Il mio scopo non è darti un noioso motore di ricerca, ma farti scoprire le gemme più preziose e i veri 'cult' della storia del cinema. 💎🍿\n\n"
+        "🎯 *Come funziona la magia?*\n"
+        "1️⃣ Usa il comando /naviga per esplorare il mio pascolo segreto. 🌾\n"
+        "2️⃣ Scegli il tuo **Mood** (umore) e il **Tempo** a tua disposizione. ⏳\n"
+        "3️⃣ Ti proporrò una 'carta' film alla volta. Puoi **Sceglierla** 🎬, dire che l'hai **Già vista** 👀 (per salire di livello velocemente!), oppure passare avanti ➡️.\n"
+        "4️⃣ Usa /skills per vedere il tuo livello di Cinefilia e sbloccare opere d'arte sempre più rare! 🏆📈\n\n"
+        "Inizia digitando o cliccando su /naviga ! Dai gas! 🚀"
     )
     keyboard = [
         [InlineKeyboardButton("🍿 Principiante (Tier 1)", callback_data="set_tier_1")],
@@ -45,15 +45,15 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def naviga(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
-        [InlineKeyboardButton("☕ Decompressione/Conforto", callback_data="mood_DECOMPRESSION")],
-        [InlineKeyboardButton("🧨 Catarsi/Adrenalina", callback_data="mood_CATHARSIS")],
-        [InlineKeyboardButton("🌌 Ipnotico/Fuga", callback_data="mood_HYPNOTIC")],
-        [InlineKeyboardButton("🧠 Introspezione/Profondità", callback_data="mood_INTROSPECTION")]
+        [InlineKeyboardButton("☕ Decompressione / Relax", callback_data="mood_DECOMPRESSION")],
+        [InlineKeyboardButton("🧨 Catarsi / Adrenalina", callback_data="mood_CATHARSIS")],
+        [InlineKeyboardButton("🌌 Ipnotico / Fuga", callback_data="mood_HYPNOTIC")],
+        [InlineKeyboardButton("🧠 Introspezione / Riflessione", callback_data="mood_INTROSPECTION")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await update.message.reply_text(
-        "Non sai cosa guardare? Scegli il tuo mood attuale e ti proporrò il film perfetto dal mio pascolo... ehm, archivio storico! MOO!",
+        "Non sai cosa guardare stasera? 🍿 Nessun problema!\n\n👇 Scegli il tuo **Umore Attuale** e io andrò a scavare nel mio pascolo per trovarti il film perfetto! MOO! 🐄✨",
         reply_markup=reply_markup,
         parse_mode="Markdown"
     )
@@ -152,12 +152,12 @@ async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def rule(update: Update, context: ContextTypes.DEFAULT_TYPE):
     rules_text = (
-        "📜 *Le Regole del Pascolo (Cult MOOvie Advisor)* 📜\n\n"
-        "1️⃣ *Sii Onesto:* Scegli il Mood che ti rappresenta in questo esatto momento.\n"
-        "2️⃣ *Scala i Livelli:* Inizi al Tier 1. Più film guardi (e valuti), più la tua barra di /skills si riempie, sbloccando i Tier superiori.\n"
-        "3️⃣ *Il Feedback è Sacro:* Dopo aver scelto un film, ti chiederò com'è andata. Questo mi aiuta a far crescere il tuo livello cinefilo!\n"
-        "4️⃣ *Nessun Rimpianto:* Se un film non ti convince, puoi sempre scartarlo. Non ti verrà riproposto per un bel po'.\n\n"
-        "Che il Grande Bovino guidi le tue visioni! 🐄🎬"
+        "📜 *I 10 Comandamenti del Cult MOOvie Advisor* 📜\n\n"
+        "1️⃣ *Sii Onesto col tuo Mood:* Scegli l'umore che ti rappresenta in questo esatto momento, senza barare. 🧘‍♂️\n"
+        "2️⃣ *Scala i Livelli:* Inizi al Tier 1. Più film guardi (e valuti), più la tua barra /skills si riempie, sbloccando i Tier superiori (film d'autore e di nicchia!). 🧗‍♀️📈\n"
+        "3️⃣ *Il Feedback è Sacro:* Dopo aver scelto un film, ti chiederò com'è andata. Questo mi aiuta a far crescere il tuo livello cinefilo e a rendermi un bovino felice! 📝❤️\n"
+        "4️⃣ *Nessun Rimpianto:* Se un film non ti convince, puoi sempre scartarlo. Non ti verrà riproposto per un bel po'. 🙅‍♂️🚮\n\n"
+        "Che il Grande Bovino guidi le tue visioni! 🐄🎬✨"
     )
     await update.message.reply_text(rules_text, parse_mode="Markdown")
 
