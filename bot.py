@@ -7,6 +7,7 @@ from database import init_db
 from handlers.start_handler import get_start_handlers
 from handlers.session_handler import get_session_handlers
 from handlers.profile_handler import get_profile_handlers
+from handlers.admin_handler import get_admin_handlers
 
 # Enable logging
 logging.basicConfig(
@@ -36,6 +37,9 @@ def main():
         application.add_handler(handler)
         
     for handler in get_profile_handlers():
+        application.add_handler(handler)
+        
+    for handler in get_admin_handlers():
         application.add_handler(handler)
 
     logging.info("Bot in avvio...")
