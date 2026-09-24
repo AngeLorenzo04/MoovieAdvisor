@@ -74,7 +74,7 @@ Restituisci ESATTAMENTE e SOLO un oggetto JSON con questi campi:
                 return "Nessuna chiave API configurata! Inserisci OPENROUTER_API_KEY o GEMINI_API_KEY nel file .env"
                 
             response = await client.aio.models.generate_content(
-                model='gemini-flash-latest',
+                model='gemini-3.5-flash',
                 contents=prompt
             )
             text = response.text.strip()
