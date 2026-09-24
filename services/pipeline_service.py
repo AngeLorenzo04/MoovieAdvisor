@@ -22,7 +22,7 @@ pipeline_state = {
 }
 
 async def fetch_popular_movies_async(page=1):
-    url = f"{TMDB_BASE_URL}/movie/popular?api_key={TMDB_API_KEY}&language=it-IT&page={page}"
+    url = f"{TMDB_BASE_URL}/movie/top_rated?api_key={TMDB_API_KEY}&language=it-IT&page={page}"
     async with httpx.AsyncClient() as c:
         response = await c.get(url)
         if response.status_code == 200:
