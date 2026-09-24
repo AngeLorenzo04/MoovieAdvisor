@@ -121,8 +121,13 @@ async def run_pipeline_async(limit, chat_id, context):
                     if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
                         await context.bot.send_message(chat_id=chat_id, text=f"⚠️ Limite API raggiunto su {title}. Pausa 45s per raffreddare i motori...")
                         await asyncio.sleep(45)
+                    elif "503" in error_msg or "UNAVAILABLE" in error_msg:
+                        await context.bot.send_message(chat_id=chat_id, text=f"⚠️ Server Google sovraccarico (Errore 503) su {title}. Pausa di 15 secondi... 😴")
+                        await asyncio.sleep(15)
                     else:
-                        await context.bot.send_message(chat_id=chat_id, text=f"⚠️ Errore Intelligenza Artificiale per *{title}*:\n{error_msg}", parse_mode="Markdown")
+                        keyboard = [[InlineKeyboardButton("🛑 Ferma il Trattore", callback_data="stop_pipeline")]]
+                        reply_markup = InlineKeyboardMarkup(keyboard)
+                        await context.bot.send_message(chat_id=chat_id, text=f"⚠️ Errore Intelligenza Artificiale per *{title}*:\n{error_msg}", parse_mode="Markdown", reply_markup=reply_markup)
                         await asyncio.sleep(3)
                     continue
                     
