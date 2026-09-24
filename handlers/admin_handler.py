@@ -49,7 +49,7 @@ async def ultimi_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
     msg = f"🎥 **Ultimi {len(recent)} film aggiunti:**\n\n"
     for m in recent:
-        msg += f"• *{m.title}* ({m.year}) - Tier {m.min_tier_required} ({m.mood_tag.name})\n"
+        msg += f"• *{m.title}* ({m.year}) - Tier {m.tier} ({m.mood_tag.value})\n"
         
     await update.message.reply_text(msg, parse_mode="Markdown")
 
