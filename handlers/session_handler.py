@@ -55,20 +55,29 @@ async def render_movie_card(query, context: ContextTypes.DEFAULT_TYPE, db, user,
                 parse_mode="Markdown"
             )
     except BadRequest as e:
-        err_msg = str(e)
-        if "Failed to get http url content" in err_msg or "Message is not modified" in err_msg or "There is no photo" in err_msg or "Wrong file identifier" in err_msg:
-            # Fallback a un messaggio di testo puro se l'immagine non è raggiungibile o non cambia
-            if query.message.photo:
-                await query.delete_message()
+        # Se c'è un qualsiasi errore di BadRequest (es. URL non valido, file malformato, messaggio non modificato)
+        # Proviamo a cancellare il messaggio vecchio e inviare un nuovo messaggio testuale o foto.
+        try:
+            await query.delete_message()
+        except:
+            pass
             
+        try:
+            await context.bot.send_photo(
+                chat_id=query.message.chat_id,
+                photo=movie.poster_url,
+                caption=caption,
+                reply_markup=reply_markup,
+                parse_mode="Markdown"
+            )
+        except BadRequest:
+            # Se fallisce anche l'invio della foto nuova (es. URL rotto), inviamo solo testo
             await context.bot.send_message(
                 chat_id=query.message.chat_id,
                 text=f"*(Immagine non disponibile)*\n\n{caption}",
                 reply_markup=reply_markup,
                 parse_mode="Markdown"
             )
-        else:
-            raise e
 
 async def handle_time_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
