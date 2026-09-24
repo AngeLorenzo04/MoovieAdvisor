@@ -26,8 +26,17 @@ def main():
     # Inizializza il database se non esiste
     init_db()
 
+    async def post_init(application):
+        from telegram import BotCommand
+        commands = [
+            BotCommand("start", "Avvia o riavvia il bot"),
+            BotCommand("skills", "Guarda il tuo livello e i tuoi progressi"),
+            BotCommand("popola", "Cerca e aggiungi nuovi film (es. /popola 100)")
+        ]
+        await application.bot.set_my_commands(commands)
+
     # Costruisci l'applicazione con il job_queue per la notifica schedulata
-    application = ApplicationBuilder().token(token).build()
+    application = ApplicationBuilder().token(token).post_init(post_init).build()
 
     # Aggiungi gli handler
     for handler in get_start_handlers():
