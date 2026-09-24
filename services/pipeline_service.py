@@ -11,6 +11,9 @@ client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 TMDB_API_KEY = os.getenv("TMDB_API_KEY")
 TMDB_BASE_URL = "https://api.themoviedb.org/3"
 
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "google/gemini-1.5-flash")
+
 pipeline_state = {
     "is_running": False,
     "stop_requested": False
@@ -34,26 +37,43 @@ async def fetch_movie_details_async(movie_id):
 
 async def generate_curation_data_async(title, overview, director, year):
     prompt = f"""
-Sei un esperto critico cinematografico. Analizza il film seguente:
+Sei un critico cinematografico. Analizza il film:
 Titolo: {title} ({year})
 Regista: {director}
 Trama: {overview}
 
 Restituisci ESATTAMENTE e SOLO un oggetto JSON con questi campi:
 - "mood_tag": scegli UNA tra queste 4 stringhe ESATTE: "DECOMPRESSION", "CATHARSIS", "HYPNOTIC", "INTROSPECTION".
-- "movement_tag": (es. "Cyberpunk", "Neo-Noir", "Indie", etc. max 20 caratteri)
-- "tier": (intero: 1 per film famosi e capolavori accessibili, 2 per nicchia o d'autore, 3 per film complessi e sotterranei)
-- "tech_innovation": (breve frase sull'innovazione tecnica o registica, max 150 caratteri)
-- "cultural_legacy": (breve frase sull'impatto culturale, max 150 caratteri)
-- "watch_tip": (un consiglio su cosa notare durante la visione, stile amichevole, max 150 caratteri)
+- "movement_tag": (es. "Cyberpunk", "Neo-Noir", "Indie", ecc. max 20 caratteri)
+- "tier": (intero: 1 per film famosi, 2 per nicchia o d'autore, 3 per film complessi)
+- "tech_innovation": (breve frase, max 150 caratteri)
+- "cultural_legacy": (breve frase, max 150 caratteri)
+- "watch_tip": (un consiglio su cosa notare durante la visione, max 150 caratteri)
 """
     try:
-        # Nota: usiamo aio.models per le chiamate asincrone
-        response = await client.aio.models.generate_content(
-            model='gemini-flash-latest',
-            contents=prompt
-        )
-        text = response.text.strip()
+        if OPENROUTER_API_KEY:
+            headers = {
+                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                "Content-Type": "application/json"
+            }
+            data = {
+                "model": OPENROUTER_MODEL,
+                "messages": [{"role": "user", "content": prompt}],
+                "response_format": {"type": "json_object"}
+            }
+            async with httpx.AsyncClient() as c:
+                response = await c.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=data, timeout=60.0)
+                result = response.json()
+                if "error" in result:
+                    return str(result["error"])
+                text = result["choices"][0]["message"]["content"].strip()
+        else:
+            response = await client.aio.models.generate_content(
+                model='gemini-flash-latest',
+                contents=prompt
+            )
+            text = response.text.strip()
+            
         if text.startswith("```json"): text = text[7:]
         if text.startswith("```"): text = text[3:]
         if text.endswith("```"): text = text[:-3]
