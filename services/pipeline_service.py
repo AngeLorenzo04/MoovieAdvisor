@@ -7,7 +7,9 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from database import SessionLocal
 from models import Movie, MoodType
 
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+gemini_key = os.getenv("GEMINI_API_KEY")
+client = genai.Client(api_key=gemini_key) if gemini_key else None
+
 TMDB_API_KEY = os.getenv("TMDB_API_KEY")
 TMDB_BASE_URL = "https://api.themoviedb.org/3"
 
@@ -68,6 +70,9 @@ Restituisci ESATTAMENTE e SOLO un oggetto JSON con questi campi:
                     return str(result["error"])
                 text = result["choices"][0]["message"]["content"].strip()
         else:
+            if not client:
+                return "Nessuna chiave API configurata! Inserisci OPENROUTER_API_KEY o GEMINI_API_KEY nel file .env"
+                
             response = await client.aio.models.generate_content(
                 model='gemini-flash-latest',
                 contents=prompt
