@@ -26,10 +26,11 @@ async def skills(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"[{progress_bar}] {stats['tier_progress']}%\n"
     )
     
-    if stats['current_tier'] == 1:
-         message += f"\nBruca altri {stats['movies_needed_for_tier_2'] - stats['total_seen']} film per sbloccare il Tier 2! MOO!"
+    if stats['current_tier'] < 3:
+         missing = max(0, stats['movies_needed_for_next_tier'] - stats['streak_seen'])
+         message += f"\nBruca altri {missing} film per sbloccare il Tier {stats['current_tier'] + 1}! MOO!"
     else:
-         message += f"\nHai raggiunto il livello massimo e sbloccato l'accesso ai pascoli sotterranei (Tier 2)! MUUU! 🐮"
+         message += f"\nHai raggiunto il livello massimo! Il Grande Bovino è fiero di te! MUUU! 🐮"
 
     await update.message.reply_text(message, parse_mode="Markdown")
 

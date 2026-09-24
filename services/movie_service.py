@@ -69,5 +69,6 @@ def get_user_stats(db: Session, user: User):
         "current_tier": user.current_tier,
         "total_seen": total_seen,
         "tier_progress": tier_progress,
-        "movies_needed_for_tier_2": movies_needed_for_tier_2
+        "streak_seen": streak_seen,
+        "movies_needed_for_next_tier": movies_needed_for_next_tier
     }
